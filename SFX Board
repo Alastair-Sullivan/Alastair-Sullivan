@@ -1,0 +1,73 @@
+# Audio stuff + board
+from audiocore import WaveFile
+import digitalio
+import board
+
+# More audio stuff ;)
+try:
+    from audioio import AudioOut
+except ImportError:
+    try:
+        from audiopwmio import PWMAudioOut as AudioOut
+    except ImportError:
+        pass  # not always supported by every board!
+
+# Even more audio stuff, wonder when it ends...
+
+wave_file = open("excellent3.wav", "rb")
+wave1 = WaveFile(wave_file)
+audio = AudioOut(board.A1)
+
+
+# Ah yes finally keyboard stuff
+
+from kmk.kmk_keyboard import KMKKeyboard
+from kmk.keys import KC
+from kmk.scanners import DiodeOrientation
+from kmk.modules.layers import Layers
+keyboard = KMKKeyboard()
+keyboard.modules.append(Layers())
+MOMENTARY = KC.MO(1)
+
+
+# This defines pins and columns
+
+keyboard.col_pins = (board.D13, board.D12, board.D11, board.D10)
+keyboard.row_pins = (board.D9, board.D6, board.D5, board.SCL)
+keyboard.diode_orientation = DiodeOrientation.COL2ROW #This part doesn't matter to us because we aren't using diodes but kmk gets mad at me when I don't import it and configure it :/
+
+
+
+
+# This puts all of the keys into the kmk firmware keymap
+
+keyboard.keymap = [
+    [KC.N1, KC.N2, KC.N3, KC.A,
+     KC.N4, KC.N5, KC.N6, KC.B,
+     KC.N7, KC.N8, KC.N9, KC.C,
+     KC.X, KC.N0, KC.H, MOMENTARY],
+
+    [KC.q, KC.F2,  KC.F3, KC.F4,
+     KC.F5, KC.F6,  KC.F7, KC.F8,
+     KC.F9, KC.F10, KC.F11, KC.F12,
+     KC.F13,KC.F14, KC.F15, KC.F16]
+    ]
+
+# variable for playing sounds in kmk if you want to add more you just have to do playsound2
+# and change the wave file to wave 1 etc
+
+def playsound1(key, keyboard, *args):
+    print('sound played') #serial feedback
+    audio.play(wave1)
+    
+
+    
+#call the key with the after_press handler
+
+KC.N1.after_press_handler(playsound1)
+
+
+#don't mess with this last part it needs to be at the end :). no touchy touchy
+
+if __name__ == '__main__':
+    keyboard.go()
